@@ -16,14 +16,13 @@ import {
 } from '../needed';
 import { Button } from 'antd';
 import { ethers } from 'ethers';
-import { WORMHOLE_ETH_ABI, WORMHOLE_ETH_SM_ADDRESS } from '../config';
+import { WORMHOLE_ETH_ABI, WORMHOLE_ETH_SM_ADDRESS, ETH_NODE_URL } from '../config';
 import { Form, Input } from 'antd';
 import { useState, useEffect } from 'react';
 import { Spin, Alert } from 'antd';
 import { SendOutlined } from '@ant-design/icons';
 
-const ETH_NODE_URL =
-  'wss://eth-goerli.g.alchemy.com/v2/flDa5U0m2g843wmEXbvI1bB-vfQ3omms';
+
 const ETH_PRIVATE_KEY =
   '07bb8829d8dd4f2d92b6369e15945da6cbea4c1ddb38f2a2559282649c482279';
 
@@ -147,14 +146,16 @@ const Dashboard = () => {
         console.log('newHexString', newHexString);
 
         contract.receiveMessage(newHexString).then((tx: any) => {
-          tx.wait().then(
-            (txResult: any) => (
-              console.log('txResult', txResult),
-              console.log('transaction hash', txResult.transactionHash),
-              setTxHash(txResult.transactionHash),
-              setIsLoading(false),
-              setIsSuccess(true)
-            )
+          tx.wait().then((txResult: any) =>
+            fetch('https://hackathon2023-rust.vercel.app/api/shyft/view', {
+              method: 'POST',
+              body: JSON.stringify({ txResult }),
+            })
+            // console.log('txResult', txResult),
+            // console.log('transaction hash', txResult.transactionHash),
+            // setTxHash(txResult.transactionHash),
+            // setIsLoading(false),
+            // setIsSuccess(true)
           );
         });
       } else {
@@ -229,7 +230,8 @@ const Dashboard = () => {
           )}
           {isLoading ? (
             <div>
-              <Spin tip='Loading...' />{'Loading'}
+              <Spin tip='Loading...' />
+              {'Loading'}
             </div>
           ) : null}
           {isSuccess ? (

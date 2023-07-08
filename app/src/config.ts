@@ -1,3 +1,6 @@
+export const ETH_NODE_URL =
+  'wss://eth-goerli.g.alchemy.com/v2/flDa5U0m2g843wmEXbvI1bB-vfQ3omms';
+  
 export const WORMHOLE_ETH_SM_ADDRESS =
   "0x1A847f1bf58Ac84cF75B9c62135C7c0360D2AF95";
 

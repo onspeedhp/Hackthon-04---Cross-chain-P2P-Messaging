@@ -1,13 +1,13 @@
 import {
   IDL,
-  NETWORK_URL,
+  ETH_NODE_URL,
   WORMHOLE_ETH_ABI,
   WORMHOLE_ETH_SM_ADDRESS,
-} from "@/config/config";
+} from "../../../src/config";
 import { ethers } from "ethers";
 import { NextApiRequest, NextApiResponse } from "next";
 import * as anchor from "@project-serum/anchor";
-import { createHellowormProgramInterface } from "@/needed";
+import { createHellowormProgramInterface } from "../../../src/needed";
 
 interface sqData {
   data: number[];
@@ -64,8 +64,8 @@ export default async function handler(
               });
 
               const privateKey = process.env.PRIVATE_KEY_WALLET as string;
-              const provider = new ethers.providers.JsonRpcProvider(
-                NETWORK_URL
+              const provider = new ethers.providers.WebSocketProvider(
+                ETH_NODE_URL
               );
               const signer = new ethers.Wallet(privateKey, provider);
               const contract = new ethers.Contract(
