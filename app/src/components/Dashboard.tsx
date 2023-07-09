@@ -29,7 +29,6 @@ const Dashboard = () => {
    const programId = new PublicKey('GsTfE4Ndievuh8G5EWAPcS7aixwKyN5YdZNymq2cVfNV');
    const program = createHellowormProgramInterface(connection, programId);
    const [txHash, setTxHash] = useState()
-   const [isLoading, setIsLoading] = useState(false);
    const [isSuccess, setIsSuccess] = useState(false);
 
 
@@ -40,14 +39,12 @@ const Dashboard = () => {
      tokenAddess: e.tokenAddress,
      amount: 10000000000000000000,
    };
-
     // const messageTransfer: any = {
     //   from: "0xFb4945F868f00de7aFA6aA2b73cea1D48c0E27A2",
     //   to: "0x86f93CdC9cD700C018AC0235D6eB249B38609A0f",
     //   tokenAddess: "0xec171F51676B62127a4BdfB145944cf8e6fDe08c",
     //   amount: 10000000000000000000,
     // };
-
    console.log("messageTransfer", messageTransfer)
 
    const jsonString = JSON.stringify(messageTransfer);
@@ -59,11 +56,8 @@ const Dashboard = () => {
 
     handleClick(helloMessage)
   }
-
-
   
   const handleClick = async (helloMessage:any) => {
-    setIsLoading(true);
 
     if (wallet !== undefined) {
       let transaction = new Transaction();
@@ -88,68 +82,10 @@ const Dashboard = () => {
       skipPreflight: true,
       maxRetries: 5,
     });
-    console.log("Transaction", txid);
+    console.log("Transaction id on solana", txid);
 
     await connection.confirmTransaction(txid);
 
-    let attempts = 10;
-    let info;
-    while (attempts > 0) {
-      info = await connection.getTransaction(txid);
-      if (info) {
-        break;
-      } else {
-        attempts -= 1;
-        console.log("Retrying to fetch transaction info in 5 seconds");
-        await new Promise((r) => setTimeout(r, 3000));
-      }
-    }
-    if (info != null) {
-        const sequence = parseSequenceFromLogSolana(info);
-        const emitterAddress = getEmitterAddressSolana(program.programId);
-        
-        const vaaURL = `${WORMHOLE_RPC_HOST}/v1/signed_vaa/${CHAIN_ID_SOLANA}/${emitterAddress}/${sequence}`;
-        console.log('Searching for: ', vaaURL);
-        let vaaBytes = await (await fetch(vaaURL)).json();
-        while (!vaaBytes.vaaBytes) {
-          console.log('VAA not found, retrying in 4s!');
-          await new Promise((r) => setTimeout(r, 4000));
-          vaaBytes = await (await fetch(vaaURL)).json();
-        }
-        console.log(vaaBytes);
-
-        const privateKey = ETH_PRIVATE_KEY as string;
-        const provider = new ethers.providers.WebSocketProvider(
-          ETH_NODE_URL
-        );
-        const signer = new ethers.Wallet(privateKey, provider);
-        const contract = new ethers.Contract(
-          WORMHOLE_ETH_SM_ADDRESS,
-          WORMHOLE_ETH_ABI,
-          signer
-        );
-
-        const input = vaaBytes.vaaBytes;
-        const buffer = Buffer.from(input, "base64");
-        const hexString = buffer.toString("hex");
-
-        const newHexString = `0x${hexString}`;
-
-        console.log("newHexString", newHexString);
-
-        contract.receiveMessage(newHexString).then((tx: any) => {
-          tx.wait().then((txResult: any) =>(
-            console.log("txResult",txResult),
-            console.log("transaction hash",txResult.transactionHash),
-            setTxHash(txResult.transactionHash),
-            setIsLoading(false),
-            setIsSuccess(true)
-          ));
-        });
-      } else {
-        console.log("Info is null");
-        setIsLoading(false);
-      }
     } else {
         console.log('Wallet is not defined.');
     }
@@ -184,7 +120,6 @@ const Dashboard = () => {
         </Form.Item>
       </Form>
       {txHash && <div className="mb-[5px]">Transaction Hash: {txHash}</div>}
-      {isLoading ? <Spin tip="Loading..." /> : null}
       {isSuccess ? <Alert message="Transaction successful !!!" type="success" /> : null}
     </div>
   );
